@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DeckCard, {type DeckSummary} from "@/components/DeckCard";
+import NewDeck from "@/components/NewDeck";
 
 //temp data
 const sampleDecks: DeckSummary[] = [
@@ -36,7 +37,7 @@ export default function Home() {
 
       </header>
 
-      {/* NewDeckForm goes here next */}
+      <NewDeck />
 
       <section aria-labelledby="decks-heading" className="flex flex-col gap-4">
         
