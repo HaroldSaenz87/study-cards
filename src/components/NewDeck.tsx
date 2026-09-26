@@ -1,20 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FileText, Upload, X } from "lucide-react";
 
-type Flashcard = { question: string; answer: string };
+type CreatedDeck = { id: string; title: string; cardCount: number };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export default function NewDeckForm() {
+  const router = useRouter();
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [count, setCount] = useState("10");
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [created, setCreated] = useState<CreatedDeck | null>(null);
 
   // Shared by both drag-and-drop and "browse files"
   function pickFile(picked: File | undefined) {
@@ -40,6 +43,7 @@ export default function NewDeckForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setCreated(null);
 
     if (!notes.trim() && !file) {
       setError("Add a PDF or paste some notes first.");
@@ -57,7 +61,10 @@ export default function NewDeckForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
 
-      setCards(data);
+      setCreated(data);
+      setNotes("");
+      setFile(null);
+      router.refresh(); // re-runs the dashboard's server code so the new deck appears
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -91,7 +98,7 @@ export default function NewDeckForm() {
               type="button"
               onClick={() => setFile(null)}
               aria-label="Remove PDF"
-              className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white"
+              className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:bg-white"
             >
               <X size={20} aria-hidden />
             </button>
@@ -153,7 +160,7 @@ export default function NewDeckForm() {
               id="count"
               value={count}
               onChange={(e) => setCount(e.target.value)}
-              className="min-h-11 rounded-lg border border-[#D8D2C2] bg-white px-3 cursor-pointer"
+              className="min-h-11 cursor-pointer rounded-lg border border-[#D8D2C2] bg-white px-3"
             >
               <option>10</option>
               <option>20</option>
@@ -163,7 +170,7 @@ export default function NewDeckForm() {
           <button
             type="submit"
             disabled={loading}
-            className="min-h-12 rounded-lg bg-accent px-6 font-semibold text-white hover:bg-[#1F3680] disabled:cursor-wait disabled:opacity-70 cursor-pointer"
+            className="min-h-12 cursor-pointer rounded-lg bg-accent px-6 font-semibold text-white hover:bg-[#1F3680] disabled:cursor-wait disabled:opacity-70"
           >
             {loading ? "Generating…" : "Generate flashcards"}
           </button>
@@ -176,18 +183,15 @@ export default function NewDeckForm() {
         </p>
       )}
 
-      {cards.length > 0 && (
-        <div className="mt-6 flex flex-col gap-3">
-          <p className="font-semibold">Generated {cards.length} cards:</p>
-          <ul className="grid gap-3 md:grid-cols-2">
-            {cards.map((card, i) => (
-              <li key={i} className="rounded-lg bg-[#FBFAF6] p-4">
-                <p className="font-semibold">{card.question}</p>
-                <p className="mt-1 text-sm text-muted">{card.answer}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {created && (
+        <p role="status" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-semibold">
+            Created “{created.title}” with {created.cardCount} cards.
+          </span>
+          <Link href={`/study/${created.id}`} className="font-semibold text-accent underline">
+            Study now
+          </Link>
+        </p>
       )}
     </section>
   );
