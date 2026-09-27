@@ -1,9 +1,9 @@
-import { GoogleGenAI, type Part } from "@google/genai";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Deck from "@/models/Deck";
+import { type Part } from "@google/genai";
+import { ai, MODEL } from "@/lib/gemini";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 type GeneratedDeck = {
