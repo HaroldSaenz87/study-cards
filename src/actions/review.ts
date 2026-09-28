@@ -1,4 +1,5 @@
 "use server";
+import Review from "@/models/Review";
 
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
@@ -37,5 +38,7 @@ export async function reviewCard(deckId: string, cardId: string, rating: Rating)
             },
         }
     );
+
+    await Review.create({ deckId, cardId, rating });
 }
 

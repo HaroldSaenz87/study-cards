@@ -8,6 +8,8 @@ import { nextInterval, formatInterval, type Rating } from "@/lib/schedule";
 
 export type StudyCard = {
   id: string;
+  deckId: string; // ← NEW (1)
+  deckTitle: string; // ← NEW (1)
   question: string;
   answer: string;
   intervalDays: number;
@@ -20,7 +22,8 @@ const ratingButtons: { value: Rating; label: string; className: string }[] = [
   { value: "easy", label: "Easy", className: "bg-[#DDE4F5] text-[#1F3680] hover:bg-[#CBD6F0]" },
 ];
 
-type Props = { deckId: string; title: string; cards: StudyCard[] };
+// deckId is only passed when studying a single deck
+type Props = { deckId?: string; title: string; cards: StudyCard[] };
 
 export default function StudySession({ deckId, title, cards }: Props) {
   const [queue, setQueue] = useState(cards);
@@ -39,7 +42,7 @@ export default function StudySession({ deckId, title, cards }: Props) {
 
     startTransition(async () => {
       try {
-        await reviewCard(deckId, card.id, rating);
+        await reviewCard(card.deckId, card.id, rating); // ← FIXED (2)
         setReviewed((n) => n + 1);
         setRevealed(false);
         // "Again" sends the card to the back of the line for this session
@@ -84,6 +87,12 @@ export default function StudySession({ deckId, title, cards }: Props) {
       {card ? (
         <>
           <div className="flex min-h-72 flex-col justify-center gap-6 rounded-2xl border border-[#E4DECF] bg-white p-10 text-center">
+            {/* NEW (3): show the deck name when reviewing across decks */}
+            {!deckId && (
+              <span className="mx-auto w-fit rounded-full bg-[#F1EDE3] px-3 py-1 text-xs font-semibold text-muted">
+                {card.deckTitle}
+              </span>
+            )}
             <p className="text-sm font-semibold uppercase tracking-wide text-muted">Question</p>
             <p className="font-display text-2xl font-semibold">{card.question}</p>
             {revealed && (
@@ -131,12 +140,14 @@ export default function StudySession({ deckId, title, cards }: Props) {
       ) : (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#E4DECF] bg-white p-10 text-center">
           <p className="font-display text-2xl font-semibold">
-            {reviewed > 0 ? "Session complete!" : "Nothing due in this deck"}
+            {reviewed > 0 ? "Session complete!" : "Nothing due right now"}
           </p>
           <p className="text-muted">
             {reviewed > 0
               ? `You reviewed ${reviewed} cards. They'll come back when they're due.`
-              : "All cards are scheduled for later. You can still quiz yourself."}
+              : deckId
+                ? "All cards in this deck are scheduled for later. You can still quiz yourself."
+                : "You're all caught up across every deck. Come back later or create a new deck."}
           </p>
           <div className="flex gap-3">
             <Link
@@ -145,12 +156,15 @@ export default function StudySession({ deckId, title, cards }: Props) {
             >
               Back to dashboard
             </Link>
-            <Link
-              href={`/quiz/${deckId}`}
-              className="flex min-h-11 items-center rounded-lg bg-[#F1EDE3] px-5 font-semibold hover:bg-[#E8E2D4]"
-            >
-              Take quiz
-            </Link>
+            {/* FIXED (4): only link to a quiz when studying one deck */}
+            {deckId && (
+              <Link
+                href={`/quiz/${deckId}`}
+                className="flex min-h-11 items-center rounded-lg bg-[#F1EDE3] px-5 font-semibold hover:bg-[#E8E2D4]"
+              >
+                Take quiz
+              </Link>
+            )}
           </div>
         </div>
       )}

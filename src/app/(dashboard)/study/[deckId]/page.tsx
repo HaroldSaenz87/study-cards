@@ -16,9 +16,11 @@ export default async function StudyDeckPage({ params }: PageProps<"/study/[deckI
 
   const now = new Date();
   const dueCards: StudyCard[] = deck.cards
-    .filter((card) => card.nextReviewDate <= now)
+    .filter((card) => card._id && card.nextReviewDate <= now)
     .map((card) => ({
       id: String(card._id),
+      deckId: String(deck._id),
+      deckTitle: deck.title,
       question: card.question,
       answer: card.answer,
       intervalDays: card.intervalDays,

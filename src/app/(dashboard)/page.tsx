@@ -30,9 +30,9 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-7">
-      <header className="flex items-end justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-[38px] font-semibold">Good evening</h1>
+          <h1 className="font-display text-3xl font-semibold sm:text-[38px]">Good evening</h1>
           <p className="text-muted">
             {totalDue > 0
               ? `You have ${totalDue} cards due for review today.`
@@ -41,7 +41,7 @@ export default async function HomePage() {
         </div>
         <Link
           href="/study"
-          className="flex min-h-11 items-center rounded-lg bg-ink px-5 font-semibold text-white hover:bg-black"
+          className="flex min-h-11 w-full items-center justify-center rounded-lg bg-ink px-5 font-semibold text-white hover:bg-black sm:w-auto"
         >
           Start review
         </Link>
